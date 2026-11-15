@@ -31,6 +31,7 @@ h2{font-size:clamp(28px,3.2vw,42px)}
 h3{font-size:20px;line-height:1.25}
 p{margin:0 0 1em}
 .wrap{width:min(1240px,100% - 40px);margin-inline:auto}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .skip{position:absolute;left:-999px;top:8px;background:var(--grafit);color:#fff;padding:8px 14px;z-index:200}
 .skip:focus{left:8px}
 :focus-visible{outline:3px solid var(--or);outline-offset:2px}
