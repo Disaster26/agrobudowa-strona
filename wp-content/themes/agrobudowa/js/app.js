@@ -38,26 +38,14 @@
     }
   }
 
-  /* galerie w kartach: palec, mysz, strzałki, licznik */
+  /* okienka realizacji: główne zdjęcie, po kliknięciu wszystkie zdjęcia po kolei (etapy budowy) */
   var galerie={};
   d.querySelectorAll('.gal[data-gal]').forEach(function(g){
-    var tor=g.querySelector('.gal-tor'), n=tor.querySelectorAll('figure').length;
-    var licz=g.querySelector('.gal-i'), p=g.querySelector('.gal-p'), x=g.querySelector('.gal-x');
-    var karta=g.closest('.karta'), tyt=karta?karta.querySelector('h3').textContent:'';
-    galerie[g.dataset.gal]={tor:tor,tyt:tyt,kadry:g.dataset.kadry==='1'};
-    function idx(){return Math.round(tor.scrollLeft/Math.max(1,tor.clientWidth));}
-    function upd(){var i=idx();if(licz)licz.textContent=i+1;if(p)p.disabled=i<=0;if(x)x.disabled=i>=n-1;}
-    function idz(i){tor.scrollTo({left:Math.max(0,Math.min(n-1,i))*tor.clientWidth,behavior:'smooth'});}
-    if(p)p.addEventListener('click',function(){idz(idx()-1);});
-    if(x)x.addEventListener('click',function(){idz(idx()+1);});
-    tor.addEventListener('scroll',function(){window.requestAnimationFrame(upd);},{passive:true});
-    tor.addEventListener('keydown',function(e){if(e.key==='ArrowRight'){e.preventDefault();idz(idx()+1);}if(e.key==='ArrowLeft'){e.preventDefault();idz(idx()-1);}if(e.key==='Enter'){otworzLb(g.dataset.gal,idx());}});
-    upd();
-    var start=0,sl=0,ciag=false,ruch=0;
-    tor.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse')return;ciag=true;ruch=0;start=e.clientX;sl=tor.scrollLeft;});
-    window.addEventListener('pointermove',function(e){if(!ciag)return;var dx=e.clientX-start;ruch=Math.max(ruch,Math.abs(dx));if(ruch>4){tor.classList.add('ciagnie');tor.scrollLeft=sl-dx;}});
-    window.addEventListener('pointerup',function(e){if(!ciag)return;ciag=false;tor.classList.remove('ciagnie');if(ruch>4){var dx=e.clientX-start;idz(Math.round(sl/tor.clientWidth)+(dx<-40?1:dx>40?-1:0));}});
-    tor.addEventListener('click',function(e){if(ruch>4){e.preventDefault();ruch=0;return;}otworzLb(g.dataset.gal,idx());});
+    var karta=g.closest('.karta'), lista=[];
+    try{lista=JSON.parse(g.dataset.zdj||'[]');}catch(e){}
+    galerie[g.dataset.gal]={zdj:lista,tyt:karta?karta.querySelector('h3').textContent:''};
+    var okl=g.querySelector('.gal-okl');
+    if(okl)okl.addEventListener('click',function(){otworzLb(g.dataset.gal,0);});
   });
   d.querySelectorAll('[data-otworz]').forEach(function(b){b.addEventListener('click',function(){otworzLb(b.dataset.otworz,0);});});
 
@@ -65,20 +53,21 @@
   var lb=d.getElementById('lb'), lbTor=lb&&lb.querySelector('.lb-tor'), lbLicz=lb&&lb.querySelector('.lb-licz'), lbTyt=lb&&lb.querySelector('.lb-tyt'), ostatni=null, lbN=0;
   function lbIdx(){return Math.round(lbTor.scrollLeft/Math.max(1,lbTor.clientWidth));}
   function otworzLb(id,start){
-    var g=galerie[id]; if(!g||!lb)return;
+    var g=galerie[id]; if(!g||!lb||!g.zdj.length)return;
     ostatni=d.activeElement;
-    var imgs=g.tor.querySelectorAll('img'); lbN=imgs.length;
+    var duze=window.innerWidth*(window.devicePixelRatio||1)>1100;
+    lbN=g.zdj.length;
     lbTor.innerHTML='';
-    imgs.forEach(function(im,i){var f=d.createElement('figure');var n=d.createElement('img');n.src=im.dataset.big||im.currentSrc||im.src;n.alt=im.alt;if(Math.abs(i-start)>1)n.loading='lazy';f.appendChild(n);lbTor.appendChild(f);});
-    lbTyt.textContent=g.tyt+(g.kadry?' (kadry z filmu)':'');
+    g.zdj.forEach(function(z,i){var f=d.createElement('figure');var n=d.createElement('img');n.src=duze?z[1]:z[0];n.alt=g.tyt+' - '+z[2].toLowerCase();n.decoding='async';if(Math.abs(i-start)>1)n.loading='lazy';f.appendChild(n);lbTor.appendChild(f);});
+    lbTyt.textContent=g.tyt;
     lb.hidden=false;body.classList.add('zablokuj');
     lbTor.scrollLeft=start*lbTor.clientWidth;
-    lbLicz.textContent=(start+1)+' / '+lbN;
+    lbLicz.textContent='etap '+(start+1)+' z '+lbN;
     lb.querySelector('.lb-z').focus();
   }
   function zamknijLb(){lb.hidden=true;body.classList.remove('zablokuj');lbTor.innerHTML='';if(ostatni)ostatni.focus();}
   if(lb){
-    lbTor.addEventListener('scroll',function(){lbLicz.textContent=(lbIdx()+1)+' / '+lbN;},{passive:true});
+    lbTor.addEventListener('scroll',function(){lbLicz.textContent='etap '+(lbIdx()+1)+' z '+lbN;},{passive:true});
     lb.querySelector('.lb-z').addEventListener('click',zamknijLb);
     lb.querySelector('.lb-p').addEventListener('click',function(){lbTor.scrollTo({left:(lbIdx()-1)*lbTor.clientWidth,behavior:'smooth'});});
     lb.querySelector('.lb-x').addEventListener('click',function(){lbTor.scrollTo({left:(lbIdx()+1)*lbTor.clientWidth,behavior:'smooth'});});
@@ -120,7 +109,7 @@
     };
     btns.forEach(function(b){b.addEventListener('click',function(){ustaw(b.dataset.f);history.replaceState(null,'',b.dataset.f==='*'?location.pathname:'#'+b.dataset.f);});});
     var h=location.hash.slice(1);
-    if(['hale','inwentarskie','konstrukcje'].indexOf(h)>-1)ustaw(h);
+    if(['hale','inwentarskie','silosy'].indexOf(h)>-1)ustaw(h);
   }
 
   /* formularz zapytania */
