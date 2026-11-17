@@ -465,3 +465,5 @@ body.zablokuj{overflow:hidden}
 .gal-licz[hidden]{display:none}
 a.hero-naj{text-decoration:none}
 a.hero-naj .hero-naj-play svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;margin-left:0}
+.lb{background:#0E1012}
+.lb-licz{white-space:nowrap}
