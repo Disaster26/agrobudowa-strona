@@ -71,7 +71,24 @@
     lb.querySelector('.lb-z').addEventListener('click',zamknijLb);
     lb.querySelector('.lb-p').addEventListener('click',function(){lbTor.scrollTo({left:(lbIdx()-1)*lbTor.clientWidth,behavior:'smooth'});});
     lb.querySelector('.lb-x').addEventListener('click',function(){lbTor.scrollTo({left:(lbIdx()+1)*lbTor.clientWidth,behavior:'smooth'});});
-    lb.addEventListener('click',function(e){if(e.target.tagName==='FIGURE')zamknijLb();});
+    lb.addEventListener('click',function(e){if(e.target===lb||e.target===lbTor||e.target.tagName==='FIGURE')zamknijLb();});
+  }
+
+  /* pierwszy ekran: zdjęcia zmieniane co kilka sekund (kolejne wczytywane po załadowaniu strony) */
+  var hs=d.querySelectorAll('.hero-foto .hs');
+  if(hs.length>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){
+    var hsStart=function(){
+      hs.forEach(function(s,i){var im=s.querySelector('img');if(i&&im&&im.dataset.src){im.srcset=im.dataset.srcset||'';im.src=im.dataset.src;im.removeAttribute('data-src');}});
+      var k=0;
+      setInterval(function(){
+        if(d.hidden)return;
+        var n=(k+1)%hs.length, im=hs[n].querySelector('img');
+        if(!im||!im.complete||!im.naturalWidth)return;
+        hs[k].classList.remove('on');hs[n].classList.add('on');k=n;
+      },5500);
+    };
+    var hsCzekaj=function(){setTimeout(hsStart,2500);};
+    if(d.readyState==='complete')hsCzekaj();else window.addEventListener('load',hsCzekaj);
   }
 
   /* film YouTube - odtwarzacz wstawiany dopiero po kliknięciu (i za zgodą) */
